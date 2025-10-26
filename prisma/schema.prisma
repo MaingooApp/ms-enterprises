@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EntityType {
+  RESTAURANT
+  SUPPLIER
+}
+
+model Enterprise {
+  id                   String      @id @default(uuid()) @db.Uuid
+  type                 EntityType
+  parentId             String?     @map("parent_id") @db.Uuid
+  name                 String      @db.VarChar
+  cifNif               String?     @map("cif_nif") @db.VarChar
+  email                String?     @db.VarChar
+  country              String?     @db.VarChar
+  city                 String?     @db.VarChar
+  address              String?     @db.VarChar
+  postalCode           String?     @map("postal_code") @db.VarChar
+  firstPhonePrefix     String?     @map("first_phone_prefix") @db.VarChar
+  firstPhoneNumber     String?     @map("first_phone_number") @db.VarChar
+  secondPhonePrefix    String?     @map("second_phone_prefix") @db.VarChar
+  secondPhoneNumber    String?     @map("second_phone_number") @db.VarChar
+  iban                 String?     @db.VarChar
+  createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamp
+  updatedAt            DateTime    @updatedAt @map("updated_at") @db.Timestamp
+
+  // Relations
+  parent               Enterprise? @relation("EnterpriseHierarchy", fields: [parentId], references: [id])
+  children             Enterprise[] @relation("EnterpriseHierarchy")
+
+  @@map("entity")
+}
