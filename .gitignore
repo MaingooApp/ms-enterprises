@@ -1,0 +1,13 @@
+# Node
+node_modules/
+npm-debug.log
+pnpm-lock.yaml
+package-lock.json
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
