@@ -1,19 +1,24 @@
 # Dependencias
-FROM node:20-alpine3.19 AS deps
+FROM node:20-alpine3.19 as deps
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
 
-RUN npm ci --only=production
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+RUN pnpm install --frozen-lockfile
 
 
 
 
 # Builder - Construye la aplicación
-FROM node:20-alpine3.19 AS build
+FROM node:20-alpine3.19 as build
 
 WORKDIR /usr/src/app
+
+# Habilitar pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 # Copiar de deps, los módulos de node
 COPY --from=deps /usr/src/app/node_modules ./node_modules
@@ -22,12 +27,12 @@ COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 
 # Generar el cliente de Prisma
-RUN npx prisma generate
+RUN pnpm prisma generate
 
-# RUN npm run test
-RUN npm run build
+# RUN pnpm run test
+RUN pnpm run build
 
-RUN npm ci --only=production
+RUN pnpm install --prod --frozen-lockfile && pnpm store prune
 
 
 
