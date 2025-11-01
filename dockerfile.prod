@@ -1,0 +1,49 @@
+# Dependencias
+FROM node:20-alpine3.19 AS deps
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm ci --only=production
+
+
+
+
+# Builder - Construye la aplicación
+FROM node:20-alpine3.19 AS build
+
+WORKDIR /usr/src/app
+
+# Copiar de deps, los módulos de node
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+
+# Copiar todo el codigo fuente de la aplicación
+COPY . .
+
+# Generar el cliente de Prisma
+RUN npx prisma generate
+
+# RUN npm run test
+RUN npm run build
+
+RUN npm ci --only=production
+
+
+
+# Crear la imagen final de Docker
+FROM node:20-alpine3.19 AS prod
+
+WORKDIR /usr/src/app
+
+
+COPY --from=build /usr/src/app/node_modules ./node_modules
+
+# Copiar la carpeta de DIST
+COPY --from=build /usr/src/app/dist ./dist
+
+# Copiar prisma para las migraciones
+COPY --from=build /usr/src/app/prisma ./prisma
+
+
+CMD [ "node", "dist/main.js" ]
