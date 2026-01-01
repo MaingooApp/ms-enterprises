@@ -19,6 +19,7 @@ async function bootstrap() {
         reconnectTimeWait: 2000,
         timeout: 5000,
         name: "ms-enterprises",
+        maxPayload: 20 * 1024 * 1024, // 20MB limit
       },
     }
   );
